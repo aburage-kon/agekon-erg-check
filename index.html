@@ -271,7 +271,8 @@
     </div>
 
     <div class="cta-row">
-      <button type="button" class="share-btn" id="share-btn">📢 結果をシェアする</button>
+      <button type="button" class="share-btn" id="share-x-btn">𝕏でシェア</button>
+      <button type="button" class="ghost" id="share-btn">📤 その他でシェア</button>
       <button type="button" class="ghost" id="reset-btn">もう一回話す</button>
     </div>
   </div>
@@ -598,17 +599,30 @@ function finalizeResults() {
   resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+function shareText() {
+  const { totalPct, needPcts } = lastResult;
+  return `職場マッチング度は${totalPct}%だったよ!(存在${needPcts.E}% / 関係${needPcts.R}% / 成長${needPcts.G}%)
+あなたもチェックしてみて`;
+}
+
+document.getElementById('share-x-btn').addEventListener('click', () => {
+  if (!lastResult) return;
+  const url = window.location.href;
+  const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText())}&url=${encodeURIComponent(url)}`;
+  window.open(tweetUrl, '_blank');
+});
+
 document.getElementById('share-btn').addEventListener('click', () => {
   if (!lastResult) return;
-  const { totalPct, needPcts } = lastResult;
-  const text = `職場マッチング度は${totalPct}%だったよ!(存在${needPcts.E}% / 関係${needPcts.R}% / 成長${needPcts.G}%)
-あなたもチェックしてみて`;
+  const text = shareText();
   const url = window.location.href;
   if (navigator.share) {
     navigator.share({ text, url }).catch(() => {});
   } else {
-    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-    window.open(tweetUrl, '_blank');
+    navigator.clipboard.writeText(`${text}
+${url}`).then(() => {
+      alert('リンクをコピーしたよ!好きな場所に貼ってね');
+    }).catch(() => {});
   }
 });
 
